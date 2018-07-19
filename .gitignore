@@ -1,2 +1,3 @@
 .idea/
-tools/giant-bomb-api-key
+tools/giant-bomb-api-key.js
+node_modules/

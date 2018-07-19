@@ -1,4 +1,4 @@
-export default [{"name": "Afro Samurai", "systemName": "360", "status": "unplayed"}, {
+module.exports = [{"name": "Afro Samurai", "systemName": "360", "status": "unplayed"}, {
 	"name": "Bioshock 2",
 	"systemName": "360",
 	"status": "unplayed"
