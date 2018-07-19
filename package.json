@@ -1,0 +1,18 @@
+{
+  "name": "personal-videogames",
+  "version": "1.0.0",
+  "description": "data visualization for videogames I've played",
+  "main": "index.js",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bxyoung89/personal-videogames.git"
+  },
+  "author": "Broderick Young",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bxyoung89/personal-videogames/issues"
+  },
+  "homepage": "https://github.com/bxyoung89/personal-videogames#readme"
+}
