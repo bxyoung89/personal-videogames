@@ -86,7 +86,7 @@ partialScrapedData.forEach(datum => {
 	completeData.push({
 		status,
 		...mapGiantBombGame(giantBombGame),
-		ownedMultipleTimes: false,
+		numberOfTimesOwned: false,
 	});
 });
 
