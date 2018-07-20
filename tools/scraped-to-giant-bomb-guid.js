@@ -6,7 +6,7 @@ const giantBombApiKey = require('./giant-bomb-api-key');
 
 const getGameFromGiantBomb = (guid) => {
 	const encodedGuid = encodeURIComponent(guid);
-	const url = `https://www.giantbomb.com/api/game/${encodedGuid}/?api_key=${giantBombApiKey}&format=json&field_list=image,name,original_game_rating,original_release_date,platforms,site_detail_url,concepts,developers,franchises,genres,publishers,themes`;
+	const url = `https://www.giantbomb.com/api/game/${encodedGuid}/?api_key=${giantBombApiKey}&format=json&field_list=image,name,original_game_rating,original_release_date,platforms,site_detail_url,concepts,developers,franchises,genres,publishers,themes,guid`;
 	const res = request('GET', url, {
 		headers: {
 			'user-agent': 'https://github.com/bxyoung89/personal-videogames',
@@ -15,14 +15,14 @@ const getGameFromGiantBomb = (guid) => {
 	const stringResponse = res.getBody('utf8');
 	const parsedResponse = JSON.parse(stringResponse);
 	const {results} = parsedResponse;
-	if(!results){
+	if (!results) {
 		return undefined;
 	}
 	return results;
 };
 
 const getGameIdFromGiantBomb = (unencodedGameName) => {
-	const gameName = encodeURIComponent(unencodedGameName);
+	const gameName = encodeURIComponent(unencodedGameName.replace(new RegExp(' & ', 'g'), ' and '));
 	const res = request('GET', `https://www.giantbomb.com/api/search/?api_key=${giantBombApiKey}&query=${gameName}&limit=1&resources=game&resource_type=game&format=json&field_list=guid`, {
 		headers: {
 			'user-agent': 'https://github.com/bxyoung89/personal-videogames',
@@ -31,7 +31,7 @@ const getGameIdFromGiantBomb = (unencodedGameName) => {
 	const stringResponse = res.getBody('utf8');
 	const parsedResponse = JSON.parse(stringResponse);
 	const {results} = parsedResponse;
-	if(results.length === 0){
+	if (results.length === 0) {
 		return undefined;
 	}
 	const {guid} = results[0];
@@ -44,40 +44,49 @@ const mapGiantBombGame = (game) => {
 	return {
 		name: game.name,
 		image: game.image.screen_large_url,
-		ratings: game.original_game_rating.map(nameMappingFunction),
+		ratings: (game.original_game_rating || []).map(nameMappingFunction),
 		releaseDate: game.original_release_date,
-		platforms: game.platforms.map(nameMappingFunction),
+		platforms: (game.platforms || []).map(nameMappingFunction),
 		giantBombSite: game.site_detail_url,
-		concepts: game.concepts.map(nameMappingFunction),
-		developers: game.developers.map(nameMappingFunction),
+		concepts: (game.concepts || []).map(nameMappingFunction),
+		developers: (game.developers || []).map(nameMappingFunction),
 		franchises: (game.franchises || []).map(nameMappingFunction),
-		genres: game.genres.map(nameMappingFunction),
-		publishers: game.publishers.map(nameMappingFunction),
-		themes: game.themes.map(nameMappingFunction),
+		genres: (game.genres || []).map(nameMappingFunction),
+		publishers: (game.publishers || []).map(nameMappingFunction),
+		themes: (game.themes || []).map(nameMappingFunction),
+		guid: game.guid,
 	};
 };
 
-const partialScrapedData = [
-	scrapedData[0],
-	scrapedData[1],
-	scrapedData[1],
-];
-
-const completeData =  [];
+const getHighestStatus = (statuses) => {
+	if (statuses.length === 1) {
+		return status[0];
+	}
+	if (statuses.indexOf('mastered') !== -1 || statuses.indexOf('completed') !== -1) {
+		return 'completed';
+	}
+	if (statuses.indexOf('beaten') !== -1) {
+		return 'beaten';
+	}
+	return 'unplayed';
+};
+const completeData = [];
+const unfoundGames = [];
 
 const requestSleep = 1;
-partialScrapedData.forEach(datum => {
-	const {name, status} = datum;
+scrapedData.forEach(datum => {
+	const {name, status, systemName} = datum;
 	const gameId = getGameIdFromGiantBomb(name);
 	sleep.sleep(requestSleep);
-	if(!gameId){
+	if (!gameId) {
 		console.log(`couldn't find gameid for ${name}`);
+		unfoundGames.push(name);
 		return;
 	}
 	console.log(`got gameid for ${name}`);
 	const giantBombGame = getGameFromGiantBomb(gameId);
 	sleep.sleep(requestSleep);
-	if(!giantBombGame){
+	if (!giantBombGame) {
 		console.log(`couldn't find data for ${name}`);
 		return;
 	}
@@ -87,18 +96,22 @@ partialScrapedData.forEach(datum => {
 		status,
 		...mapGiantBombGame(giantBombGame),
 		numberOfTimesOwned: false,
+		backloggerySystems: [systemName],
 	});
 });
 
-const allGameNames = completeData.map(game => game.name);
-const nameToCountMap = {};
-allGameNames.forEach(name => {
-	if(nameToCountMap[name] === undefined){
-		nameToCountMap[name] = 0;
-	}
-	nameToCountMap[name]++;
-});
-const duplicateNames = Object.keys(nameToCountMap).filter(name => nameToCountMap[name] > 1);
-// todo filter out duplicate names.
+const allGameIds = completeData.map(game => game.guid);
+const uniqueGameIds = [...new Set(allGameIds)];
 
-fs.writeFileSync('./output.json', JSON.stringify(completeData));
+const combinedData = uniqueGameIds.map(guid => {
+	const allMatches = completeData.filter(game => game.guid === guid);
+	const combinedGame = allMatches[0];
+	combinedGame.backloggerySystems = [... new Set(allMatches.reduce((sum, game) => ([...sum, ...game.backloggerySystems]), []))];
+	const allStatuses = allMatches.reduce((sum, game) => ([...sum, game.status]), []);
+	combinedGame.status = getHighestStatus(allStatuses);
+	return combinedGame;
+});
+
+fs.writeFileSync('./output.json', JSON.stringify(combinedData));
+
+console.log(`couldn't find names for these games ${unfoundGames.join(',')}`)
