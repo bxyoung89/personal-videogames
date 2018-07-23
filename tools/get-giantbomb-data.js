@@ -93,6 +93,7 @@ scrapedData.forEach(datum => {
 	}
 	console.log(`got data for ${name}`);
 	// todo maybe do some mapping to clean things up a bit?
+	// todo use mapping files in data.json to get it worked out
 	completeData.push({
 		status,
 		...mapGiantBombGame(giantBombGame),

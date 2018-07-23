@@ -1,4 +1,4 @@
-[
+module.exports = [
   {
     "status": "unplayed",
     "name": "Afro Samurai",
@@ -91068,4 +91068,4 @@
       "Wii"
     ]
   }
-]
+];
