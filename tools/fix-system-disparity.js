@@ -1,9 +1,7 @@
-const request = require('sync-request');
-const sleep = require('sleep');
 const fs = require('fs');
 const rawGiantBombData = require('../data/raw-giant-bomb-data');
-const giantBombPlatformToSystemIdMap = require('../data/giant-bomb-platform-to-system-id-map');
-const backloggerySystemToSystemIdMap = require('../data/backloggery-system-to-system-id-map');
+const giantBombPlatformToSystemIdMap = require('../data/constants/giant-bomb-platform-to-system-id-map');
+const backloggerySystemToSystemIdMap = require('../data/constants/backloggery-system-to-system-id-map');
 
 const processedGiantBombData = rawGiantBombData.map(game => {
 	const propertiesToRetain = [
@@ -19,6 +17,7 @@ const processedGiantBombData = rawGiantBombData.map(game => {
 		'genres',
 		'publishers',
 		'themes',
+		'guid',
 	];
 
 	const copiedFields = propertiesToRetain.reduce((sum, property) => ({...sum, [property]: game[property]}), {});

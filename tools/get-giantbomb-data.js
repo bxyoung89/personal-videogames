@@ -68,7 +68,13 @@ const getHighestStatus = (statuses) => {
 	if (statuses.indexOf('beaten') !== -1) {
 		return 'beaten';
 	}
-	return 'unplayed';
+	if (statuses.indexOf('null') !== -1) {
+		return 'null';
+	}
+	if (statuses.indexOf('unplayed') !== -1) {
+		return 'unplayed';
+	}
+	return 'unfinished';
 };
 const completeData = [];
 const unfoundGames = [];
