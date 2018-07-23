@@ -4,7 +4,7 @@
   "description": "data visualization for videogames I've played",
   "main": "index.js",
   "scripts": {
-    "scrape-giant-bomb": "node ./tools/scraped-to-giant-bomb-guid"
+    "get-giantbomb-data": "node ./tools/get-giantbomb-data"
   },
   "repository": {
     "type": "git",

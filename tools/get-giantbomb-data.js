@@ -22,7 +22,7 @@ const getGameFromGiantBomb = (guid) => {
 };
 
 const getGameIdFromGiantBomb = (unencodedGameName) => {
-	const gameName = encodeURIComponent(unencodedGameName.replace(new RegExp(' & ', 'g'), ' and '));
+	const gameName = encodeURIComponent(unencodedGameName.replace(new RegExp('&amp;', 'g'), 'and'));
 	const res = request('GET', `https://www.giantbomb.com/api/search/?api_key=${giantBombApiKey}&query=${gameName}&limit=1&resources=game&resource_type=game&format=json&field_list=guid`, {
 		headers: {
 			'user-agent': 'https://github.com/bxyoung89/personal-videogames',
@@ -60,7 +60,7 @@ const mapGiantBombGame = (game) => {
 
 const getHighestStatus = (statuses) => {
 	if (statuses.length === 1) {
-		return status[0];
+		return statuses[0];
 	}
 	if (statuses.indexOf('mastered') !== -1 || statuses.indexOf('completed') !== -1) {
 		return 'completed';
@@ -74,6 +74,7 @@ const completeData = [];
 const unfoundGames = [];
 
 const requestSleep = 1;
+
 scrapedData.forEach(datum => {
 	const {name, status, systemName} = datum;
 	const gameId = getGameIdFromGiantBomb(name);
@@ -113,5 +114,6 @@ const combinedData = uniqueGameIds.map(guid => {
 });
 
 fs.writeFileSync('./output.json', JSON.stringify(combinedData));
+fs.writeFileSync('./unfound-games.json', JSON.stringify(unfoundGames));
 
 console.log(`couldn't find names for these games ${unfoundGames.join(',')}`)
